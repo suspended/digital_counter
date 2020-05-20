@@ -1,0 +1,10 @@
+html, body {
+    height: 100%;
+    color: white;
+}
+
+.body_bg {
+    background-image: url("../images/bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
