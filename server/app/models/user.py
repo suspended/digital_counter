@@ -1,3 +1,5 @@
+from passlib.hash import sha256_crypt
+
 from app import db
 
 class User(db.Model):
@@ -11,6 +13,7 @@ class User(db.Model):
 
     @staticmethod
     def create_user(username, password):
+        password = sha256_crypt.encrypt(password)
         user = User(username, password)
         try:
             db.session.add(user)
@@ -24,7 +27,7 @@ class User(db.Model):
         result = User.query.filter_by(username=username).first()
         if result is None:
             return None
-        if result.username == username and result.password == password:
+        if result.username == username and sha256_crypt.verify(password, result.password):
             return result
         else:
             return None
