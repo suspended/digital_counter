@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity, create_access_token
+from datetime import datetime, timedelta
 
 from app.models.user import User
 
@@ -19,8 +20,12 @@ def index():
     if user is None:
         return 'Login Failed', 400
 
-    access_token = create_access_token(identity=username)
-    return jsonify(access_token=access_token)
+    expires = timedelta(minutes=15)
+    access_token = create_access_token(identity=username, expires_delta=expires)
+    return jsonify({
+        "access_token" : access_token,
+        "expire_in_seconds": str(expires.seconds)
+    })
 
 
 @user_blueprint.route('/register', methods=['POST'])
