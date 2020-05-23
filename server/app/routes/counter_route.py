@@ -25,8 +25,20 @@ def update_counter():
 
 @counter_blueprint.route('/get_threshold', methods=['GET'])
 def get_threshold():
-    return 200
+    threshold = Threshold.get_threshold()
+    return jsonify({
+        "ok_limit": threshold.ok_limit,
+        "warning_limit": threshold.warning_limit
+    }),  200
 
 @counter_blueprint.route('/update_threshold', methods=['POST'])
 def update_threshold():
-    return 200
+    ok_limit = request.values['ok_limit']
+    warning_limit = request.values['warning_limit']
+
+    threshold = Threshold.update_threshold(ok_limit, warning_limit)
+
+    return jsonify({
+        "ok_limit": threshold.ok_limit,
+        "warning_limit": threshold.warning_limit
+    }),  200
