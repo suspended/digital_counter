@@ -12,7 +12,12 @@ class User(db.Model):
         self.password = password
 
     @staticmethod
-    def create_user(username, password):
+    def create_super_user(username, password):
+        result = User.query.first()
+        # make sure only 1 super user is created
+        if result is not None:
+            return None
+        
         password = sha256_crypt.encrypt(password)
         user = User(username, password)
         try:

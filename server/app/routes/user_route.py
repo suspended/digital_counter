@@ -7,7 +7,7 @@ from app.models.user import User
 user_blueprint = Blueprint('user_blueprint', __name__)
 
 @user_blueprint.route('/login', methods=['POST'])
-def login():
+def login ():
     username = request.values['username']
     password = request.values['password']
 
@@ -28,7 +28,7 @@ def login():
     })
 
 
-@user_blueprint.route('/register', methods=['POST'])
+@user_blueprint.route('/create_super_user', methods=['POST'])
 def register():
     username = request.values['username']
     password = request.values['password']
@@ -38,8 +38,8 @@ def register():
     if not password:
         return 'No Password', 404
     
-    user = User.create_user(username=username, password=password)
+    user = User.create_super_user(username=username, password=password)
     if user is None:
-        return 'Registration Failed', 400
+        return 'Super User Creation Failed', 400
 
-    return 'Registration Successful', 200
+    return 'Super User Creation Successful', 200
