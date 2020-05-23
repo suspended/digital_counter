@@ -1,34 +1,46 @@
 # Backend Server for Digital Counter
 
-### Requirements
+## Requirements
 1. python 3.7
+1. docker
+1. docker-compose
 1. You can install other requirements via the requirements.txt
+1. Ports 5000,5432,5555 will be used so make sure they are empty
 
-### Running for development
-1. Create database via:
-    ```
-    flask upgrade
-    ```
-1. database file is located in `app/app.db`
-1. Run development server using
-    ```
-    bash run_dev.sh
-    ```
-### Running for Production
+## Running for development
 1. Start postgres and pgadmin container using
-    ```
+    ```bash
+    # edit mount location in run_db.sh first
+    # you can remove the -v line if you do not need to persist data
     bash run_db.sh
     bash run_db_viewer.sh
     ```
-2. Run gunicorn server with
+2. Run development server with
     ```
-    bash run.sh
+    bash run_dev.sh
     ```
 
-### Creating Super User
+## Running for production
+1. Duplicate `docker-compose-sample.env` and rename the new file `docker-compose.env`
+1. Edit the values in `docker-compose.env`. This file is in `.gitignore` and should not be committed for security reasons 
+1. Build the required containers using
+    ```bash
+    docker-compose build
+    ```
+1. Run all containers using
+    ```bash
+    docker-compose up -d
+    ```
+1. To stop all containers, use
+    ```bash
+    docker-compose down
+    ```
+
+
+## Creating Super User
 This should be done immediately after starting a new database. Only one super user can be created. Super user credentials are required for updating the latest count as well as updating the threshold. Refer to the api for instruction on how to do this.
 
-### Available Endpoints
+## Available Endpoints
 Below are the available endpoints.
 - [] refers to request body form data values
 - <> refers to response variables in json format

@@ -1,5 +1,6 @@
 # custom
 *.db
+server/docker-compose.env
 
 
 # downloaded from https://github.com/pallets/flask/blob/master/.gitignore

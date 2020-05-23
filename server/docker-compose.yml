@@ -1,0 +1,55 @@
+version: '3.7'
+services:
+  dc_server:
+    image: dc_server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./docker-compose.env
+    environment:
+      - POSTGRES_HOST=dc_db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=dc_db
+    command: bash -c 'while !</dev/tcp/dc_db/5432; do sleep 1; done; bash run.sh'
+    ports:
+      - "5000:5000"
+    networks:
+      - dc_network
+    depends_on: 
+      - dc_db
+  dc_db:
+    image: postgres
+    env_file:
+      - ./docker-compose.env
+    environment:
+      - POSTGRES_DB=dc_db
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - dc_data:/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    networks:
+      - dc_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d dc_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  dc_db_viewer:
+    image: dpage/pgadmin4
+    env_file:
+      - ./docker-compose.env
+    environment:
+      - PGADMIN_LISTEN_PORT=5555
+    ports:
+      - "5555:5555"
+    networks:
+      - dc_network
+    depends_on:
+      - dc_db
+volumes:
+  dc_data:
+
+networks:
+  dc_network:
