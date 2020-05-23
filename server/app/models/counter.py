@@ -11,7 +11,7 @@ class Counter(db.Model):
 
     def __init__(self, count):
         self.count = count
-        self.time = datetime.now()
+        self.time = datetime.utcnow()
 
     @staticmethod
     def create_count(count):
