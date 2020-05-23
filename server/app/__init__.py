@@ -19,7 +19,9 @@ def create_app():
 
     from app.routes.main_route import main_blueprint
     from app.routes.user_route import user_blueprint
+    from app.routes.counter_route import counter_blueprint
     app.register_blueprint(main_blueprint)
     app.register_blueprint(user_blueprint)
+    app.register_blueprint(counter_blueprint)
 
     return app
