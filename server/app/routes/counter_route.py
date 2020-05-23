@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import get_jwt_identity, create_access_token
+from flask_jwt_extended import jwt_required
 from datetime import datetime, timedelta
 
 from app.models.counter import Counter, Threshold
@@ -15,6 +15,7 @@ def get_counter():
     }), 200
 
 @counter_blueprint.route('/update_counter', methods=['POST'])
+@jwt_required
 def update_counter():
     count = request.values['count']
     counter = Counter.create_count(count)
@@ -32,6 +33,7 @@ def get_threshold():
     }),  200
 
 @counter_blueprint.route('/update_threshold', methods=['POST'])
+@jwt_required
 def update_threshold():
     ok_limit = request.values['ok_limit']
     warning_limit = request.values['warning_limit']
