@@ -5,12 +5,10 @@ server/docker-compose.env
 
 # downloaded from https://github.com/pallets/flask/blob/master/.gitignore
 .DS_Store
-.env
 .flaskenv
 *.pyc
 *.pyo
 env/
-env*
 dist/
 build/
 *.egg
