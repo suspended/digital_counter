@@ -1,3 +1,15 @@
+# Webpage for Digital Counter
+
+## Requirements
+- npm 
+- docker
+- Port 3000 sure is used so make sure it is empty. You will still need to run the server to make this webpage functional though
+
+## Instructions
+1. Install required node packages using `npm ci`
+2. Run webpage for development using `npm start`
+
+# Everything after this point was auto generated
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
