@@ -5,14 +5,42 @@ import {
     Col,
     Card
 } from 'react-bootstrap';
-
 import '../css/Homepage.css';
+
+import {
+    get_count,
+    get_threshold
+} from '../services/API';
 
 function Homepage() {
     let [ count, setCount ] = React.useState(0);
+    let [ okLimit, setOkLimit ] = React.useState(50);
+    let [ warningLimit, setWarningLimit ] = React.useState(50);
 
+    React.useEffect(() => {
+        async function fetchCounter(){
+            let response_count = await get_count();
+            setCount(response_count.data.count);
+        }
+        async function fetchThreshold(){
+            let response_threshold = await get_threshold();
+            setOkLimit(response_threshold.data.ok_limit);
+            setWarningLimit(response_threshold.data.warning_limit);
+        }
+        fetchCounter();
+        fetchThreshold();
+        let  pollingInterval = setInterval(fetchCounter, 3000);
+        return function cleanup(){
+            clearInterval(pollingInterval);
+        }
+    },[]);
 
     const getColorForCount = () => {
+        if(count > warningLimit){
+            return "red" 
+        } else if(count > okLimit){
+            return "yellow"
+        }
         return "green";
     };
 
