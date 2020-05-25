@@ -1,0 +1,17 @@
+.counter_page {
+    text-align: center;
+    background-image: url("../images/bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+.counter_container {
+    height: 100vh;
+}
+.counter_header {
+    color: white;
+}
+.counter_count {
+    height: 0vh;
+}
