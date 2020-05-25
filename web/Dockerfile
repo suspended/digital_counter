@@ -1,8 +1,6 @@
 # Stage 1
 FROM node:13 as react-build
 
-ARG REACT_APP_API_SERVER="http://localhost:5000"
-
 WORKDIR /web
 
 COPY package.json /web/package.json
@@ -13,6 +11,7 @@ RUN npm ci --silent
 COPY ./public /web/public
 COPY ./src /web/src
 
+ARG REACT_APP_API_SERVER=http://localhost:5000
 RUN npm run build
 
 # Stage 2
