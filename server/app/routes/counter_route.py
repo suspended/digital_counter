@@ -29,6 +29,8 @@ def get_counter():
 def update_counter():
     id = request.values['id']
     count = request.values['count']
+    if int(count) < 0:
+        count = 0
     counter = Counter.create_count(id, count)
     
     return jsonify({
