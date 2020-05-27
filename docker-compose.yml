@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
       args: 
         - REACT_APP_API_SERVER=http://localhost:5000
+    restart: always
     ports:
       - "3000:80"
     networks:
@@ -25,6 +26,7 @@ services:
       - POSTGRES_PORT=5432
       - POSTGRES_DB=dc_db
     command: bash -c 'while !</dev/tcp/dc_db/5432; do sleep 1; done; bash run.sh'
+    restart: always
     ports:
       - "5000:5000"
     networks:
@@ -40,6 +42,7 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - dc_data:/var/lib/postgresql/data/pgdata
+    restart: always
     ports:
       - "5432:5432"
     networks:
@@ -55,6 +58,7 @@ services:
       - ./server/docker-compose.env
     environment:
       - PGADMIN_LISTEN_PORT=5555
+    restart: always
     ports:
       - "5555:5555"
     networks:
