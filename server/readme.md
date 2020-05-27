@@ -40,11 +40,14 @@
 ## Creating Super User
 This should be done immediately after starting a new database. Only one super user can be created. Super user credentials are required for updating the latest count as well as updating the threshold. Refer to the api for instruction on how to do this.
 
+## Creating Locations
+Do create location records before trying to update counter or threshold. Creating location will require Super User credentials
+
 ## Available Endpoints
 Below are the available endpoints.
 - [] refers to request body form data values
 - <> refers to response variables in json format
-- \*authorization required\* will require adding header to the request packet {'Auhorization': 'Bearer \<access-token-here\>'}
+- \*authorization required\* will require adding header to the request packet {'Authorization': 'Bearer \<access-token-here\>'}
 
 For more information, you can refer to `app/routes` to view these endpoints
 
