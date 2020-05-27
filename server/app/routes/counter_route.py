@@ -2,45 +2,78 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from datetime import datetime, timedelta
 
-from app.models.counter import Counter, Threshold
+from app.models.counter import Counter, Location
 
 counter_blueprint = Blueprint('counter_blueprint', __name__)
 
-@counter_blueprint.route('/get_counter', methods=['GET'])
+@counter_blueprint.route('/location/get_latest_count', methods=['GET'])
 def get_counter():
-    counter = Counter.get_latest_count()
-    return jsonify({
-        "count": counter.count,
-        "last_updated": counter.time
-    }), 200
+    locations = Location.get_all_location()
+    data = []
 
-@counter_blueprint.route('/update_counter', methods=['POST'])
+    for location in locations:
+        counter = location.get_latest_count()
+
+        data.append({
+            "id": location.id,
+            "name": location.name,
+            "count": counter.count,
+            "last_updated": counter.time
+        })
+    return jsonify(data), 200
+
+@counter_blueprint.route('/location/update_counter', methods=['POST'])
 @jwt_required
 def update_counter():
+    id = request.values['id']
     count = request.values['count']
-    counter = Counter.create_count(count)
+    counter = Counter.create_count(id, count)
+    
     return jsonify({
         "count": counter.count,
         "last_updated": counter.time
     }), 200
 
-@counter_blueprint.route('/get_threshold', methods=['GET'])
-def get_threshold():
-    threshold = Threshold.get_threshold()
-    return jsonify({
-        "ok_limit": threshold.ok_limit,
-        "warning_limit": threshold.warning_limit
-    }),  200
-
-@counter_blueprint.route('/update_threshold', methods=['POST'])
+@counter_blueprint.route('/location', methods=['PUT'])
 @jwt_required
-def update_threshold():
+def create_location():
+    name = request.values['name']
+
+    location = Location.create_location(name=name)
+
+    return jsonify({
+        "id": location.id,
+        "name": location.name,
+        "ok_limit": location.ok_limit,
+        "warning_limit": location.warning_limit
+    }), 200
+
+@counter_blueprint.route('/location', methods=['GET'])
+def get_locations():
+    locations = Location.get_all_location()
+
+    data = []
+
+    for location in locations:
+        data.append({
+            "id": location.id,
+            "name": location.name,
+            "ok_limit": location.ok_limit,
+            "warning_limit": location.warning_limit
+        })
+
+    return jsonify(data),  200
+
+@counter_blueprint.route('/location/update_threshold', methods=['POST'])
+@jwt_required
+def update_location_threshold():
+    id = request.values['id']
     ok_limit = request.values['ok_limit']
     warning_limit = request.values['warning_limit']
 
-    threshold = Threshold.update_threshold(ok_limit, warning_limit)
+    location = Location.update_threshold(id, ok_limit, warning_limit)
 
     return jsonify({
-        "ok_limit": threshold.ok_limit,
-        "warning_limit": threshold.warning_limit
+        "ok_limit": location.ok_limit,
+        "warning_limit": location.warning_limit
     }),  200
