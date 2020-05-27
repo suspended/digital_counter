@@ -84,6 +84,8 @@ GET /location
 GET /location/get_latest_count
 <id>
 <name>
+<ok_limit>
+<warning_limit>
 <count>
 <last_updated>
 

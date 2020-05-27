@@ -17,6 +17,8 @@ def get_counter():
         data.append({
             "id": location.id,
             "name": location.name,
+            "ok_limit": location.ok_limit,
+            "warning_limit": location.warning_limit,
             "count": counter.count,
             "last_updated": counter.time
         })
