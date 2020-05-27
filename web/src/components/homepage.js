@@ -14,6 +14,7 @@ import {
 
 function Homepage() {
     let [ count, setCount ] = React.useState(0);
+    let [ lastUpdated, setLastUpdated ] =  React.useState("");
     let [ okLimit, setOkLimit ] = React.useState(50);
     let [ warningLimit, setWarningLimit ] = React.useState(50);
 
@@ -21,6 +22,8 @@ function Homepage() {
         async function fetchCounter(){
             let response_count = await get_count();
             setCount(response_count.data.count);
+            let updateDate = new Date(response_count.data.last_updated);
+            setLastUpdated(updateDate.toLocaleString());
         }
         async function fetchThreshold(){
             let response_threshold = await get_threshold();
@@ -61,6 +64,13 @@ function Homepage() {
                         </Card>
                     </Col>
                     <Col></Col>
+                </Row>
+                <Row className="pt-3">
+                    <Col>
+                        <p style={{color: "white"}}>
+                        Updated on: {lastUpdated}
+                        </p>
+                    </Col>
                 </Row>
             </Container>
         </div>
