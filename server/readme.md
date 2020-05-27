@@ -61,26 +61,42 @@ POST /login
 <access_token>
 <expire_in_seconds>
 
-# Get latest count
-GET /get_counter
+# Create location
+PUT /location
+*authorization required*
+[name]
+<id>
+<name>
+<ok_limit>
+<warning_limit>
+
+# Get location
+GET /location
+<id>
+<name>
+<ok_limit>
+<warning_limit>
+
+# Get all location latest count
+GET /location/get_latest_count
+<id>
+<name>
 <count>
 <last_updated>
 
 # Update counter
-POST /update_counter
+POST /location/update_counter
 *authorization required*
+[id]
 [count]
 <count>
 <last_updated>
 
-# Get threshold
-GET /get_threshold
-<ok_limit>
-<warning_limit>
 
 # Update threshold
-POST /update_threshold
+POST /location/update_threshold
 *authorization required*
+[id]
 [ok_limit]
 [warning_limit]
 <ok_limit>
