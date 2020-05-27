@@ -2,6 +2,8 @@
 
 A simple app to show a counter. Might be more in the future. Nobody knows.
 
+![sample](./sample-images/digital_counter_sample.png)
+
 ## Requirements
 - docker
 - docker-compose
