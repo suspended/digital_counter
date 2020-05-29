@@ -20,7 +20,7 @@ function Homepage() {
             setLocations(response.data);
         }
         fetchCounter();
-        let  pollingInterval = setInterval(fetchCounter, 3000);
+        let  pollingInterval = setInterval(fetchCounter, 1000);
         return function cleanup(){
             clearInterval(pollingInterval);
         }
