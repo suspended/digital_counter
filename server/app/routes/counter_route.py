@@ -21,6 +21,7 @@ def get_counter():
             "count": counter.count,
             "last_updated": counter.time
         })
+    data.sort(key=lambda x: x["id"])
     return jsonify(data), 200
 
 @counter_blueprint.route('/location/update_counter', methods=['POST'])
