@@ -13,17 +13,17 @@ import {
 
 function Homepage() {
     let [ locations, setLocations] = React.useState([]);
-    let [ polling, setPolling ] = React.useState(false);
 
     React.useEffect(() => {
+        let polling = false;
         async function fetchCounter(){
             if(polling){
                 return;
             }
-            setPolling(true);
+            polling = true;
             let response = await get_latest_count();
             setLocations(response.data);
-            setPolling(false);
+            polling = false;
         }
         fetchCounter();
         let  pollingInterval = setInterval(fetchCounter, 1000);
