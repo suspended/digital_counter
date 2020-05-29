@@ -8,12 +8,11 @@ counter_blueprint = Blueprint('counter_blueprint', __name__)
 
 @counter_blueprint.route('/location/get_latest_count', methods=['GET'])
 def get_counter():
-    locations = Location.get_all_location()
+    counters = Counter.get_location_latest_count()
     data = []
 
-    for location in locations:
-        counter = location.get_latest_count()
-
+    for counter in counters:
+        location = Location.get_location(counter.location_id)
         data.append({
             "id": location.id,
             "name": location.name,

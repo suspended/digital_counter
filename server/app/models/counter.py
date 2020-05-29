@@ -18,17 +18,6 @@ class Location(db.Model):
         self.ok_limit = ok_limit
         self.warning_limit = warning_limit
 
-    def get_latest_count(self):
-        if not self.counters:
-            Counter.create_count(self.id, 0)
-
-        latest_count = self.counters[0]
-        max_time = self.counters[0].time
-        for counter in self.counters:
-            if counter.time > max_time:
-                latest_count = counter
-        return counter
-
     @staticmethod
     def create_location(name):
         location = Location(name=name, ok_limit=50, warning_limit=80)
@@ -37,6 +26,11 @@ class Location(db.Model):
             db.session.commit()
         except:
             return None
+        return location
+
+    @staticmethod
+    def get_location(id):
+        location = Location.query.filter_by(id=id).first()
         return location
 
     @staticmethod
@@ -79,4 +73,15 @@ class Counter(db.Model):
             db.session.commit()
         except:
             return None
-        return counter        
+        return counter 
+
+    @classmethod
+    def get_location_latest_count(cls):
+        subquery = db.session.query(cls.location_id.label('target_location'), func.max(cls.time).label('max_time')).group_by(cls.location_id).subquery()    
+        query = db.session.query(cls.location_id, cls.count, cls.time).filter(
+            cls.location_id==subquery.c.target_location,
+            cls.time==subquery.c.max_time
+        )
+        result = query.all()
+        return result 
+
