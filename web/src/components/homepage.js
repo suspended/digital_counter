@@ -51,7 +51,7 @@ function Homepage() {
                     <Col md="auto">
                         <h1>People in {location.name}</h1>
                         <p className="text-left" style={{color: "white"}}>
-                            Updated on: {location.last_updated}
+                            Updated on: {(new Date(location.last_updated)).toLocaleString()}
                         </p>
                     </Col>
                 </Row>
