@@ -11,6 +11,8 @@ import {
     get_latest_count
 } from '../services/API';
 
+import Statistics from './Statistics';
+
 function Homepage() {
     let [ locations, setLocations] = React.useState([]);
 
@@ -34,29 +36,40 @@ function Homepage() {
 
     const getColorForCount = (count, ok_limit, warning_limit) => {
         if(count > warning_limit){
-            return "red" 
+            return "red"; 
         } else if(count > ok_limit){
-            return "orange"
+            return "orange";
         }
         return "green";
     };
 
+    const getTextForCount = (count, ok_limit, warning_limit) => {
+        if(count > warning_limit){
+            return "Crowded";
+        } else if(count > ok_limit){
+            return "Some Crowd";
+        }
+        return "Not Crowded";
+    };
+
 
     return(
-        <div className="content_page d-flex align-items-center justify-content-center">
-            <Container>
+        <div>
+            <Container fluid className="content_page py-5">
             {
                 locations.map((location) => {
                     return (
-                <Row key={location.id} className="counter_header p-3">
+                <Row key={location.id}>
                     <Col md={"auto"}>
-                        <Card>
-                            <h1 className="display-1 text-center mx-3 px-3" id="counter" style={{color: getColorForCount(location.count,location.ok_limit,location.warning_limit)}}>{location.count}</h1>
+                        <Card  style={{backgroundColor: getColorForCount(location.count,location.ok_limit,location.warning_limit)}}>
+                            <h1 className="text-center mx-3 px-3" id="counter">
+                                {getTextForCount(location.count,location.ok_limit,location.warning_limit)}
+                            </h1>
                         </Card>
                     </Col>
                     <Col md="auto">
-                        <h1>People in {location.name}</h1>
-                        <p className="text-left" style={{color: "white"}}>
+                        <h1 className="text-center">{location.name}</h1>
+                        <p className="text-center" style={{color: "white"}}>
                             Updated on: {(new Date(location.last_updated)).toLocaleString()}
                         </p>
                     </Col>
