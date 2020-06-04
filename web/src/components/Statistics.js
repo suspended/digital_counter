@@ -45,9 +45,10 @@ Date.prototype.getInputString = function(){
 function Statistics() {
     let [ locationList, setLocationList ] = React.useState([]);
 
+    let [ locationID, setLocationID] = React.useState("");
     let [ startDate, setStartDate ] = React.useState("");
     let [ endDate, setEndDate ] = React.useState("");
-    let [ locationID, setLocationID] = React.useState("");
+    let [ numPoints, setNumPoints ] = React.useState(100);
 
     let [ recordList , setRecordList ] = React.useState([]);
     let [ max , setMax ] = React.useState(0);
@@ -137,7 +138,15 @@ function Statistics() {
                         <Form.Control type="datetime-local" step="60" value={endDate} onChange={(e) => {setEndDate(e.target.value)}}></Form.Control>
                     </Form.Group>
                 </Col>
-                <Col sm="12" lg="3" className="d-flex align-items-end flex-column">
+                <Col sm="12" lg="3">
+                    <Form.Group>
+                        <Form.Label>Number of Points</Form.Label>
+                        <Form.Control type="number" value={numPoints} onChange={(e) => {setNumPoints(e.target.value)}}></Form.Control>
+                    </Form.Group>
+                </Col>
+            </Row>
+            <Row>
+                <Col className="d-flex align-items-end flex-column">
                     <Button className="mt-auto mb-3" onClick={() =>{onClickStatistics()}}>Get Statistics</Button>
                 </Col>
             </Row>
@@ -158,6 +167,7 @@ function Statistics() {
                 <Col>
                     <CountChart
                         records={recordList} 
+                        numPoints={numPoints}
                     />
                 </Col>
             </Row>
@@ -194,6 +204,7 @@ function CountChart(props) {
            },
            responsiveAnimationDuration: 1000, // animation duration after a resize
            responsive: true,
+           maintainAspectRatio: false,
            scales: {
               xAxes: [
                  {
@@ -232,21 +243,47 @@ function CountChart(props) {
         }
      };
 
-    React.useEffect(() => {
+     React.useEffect(() => {
         let temp_data = [];
         let temp_labels = [];
-        for(let i = 0; i < props.records.length; i++){
+        let increment = 1;
+        if(props.records.length > props.numPoints){
+            increment = parseInt(props.records.length/props.numPoints);
+        }
+        
+        for(let i = 0; i < props.records.length; i += increment){
             temp_data.push(props.records[i].count);
             temp_labels.push(props.records[i].time);
         }
         setData(temp_data);
         setLabels(temp_labels);
-    },[ props.records]);
+    },[ props.records, props.numPoints]);
+
+    // React.useEffect(() => {
+    //     const size = 60*60;
+    //     let start = 30;
+
+    //     let temp_data = [];
+    //     let temp_labels = [];
+    //     let increment = 1;
+    //     if(size > props.numPoints){
+    //         increment = parseInt(size/props.numPoints);
+    //     }
+
+    //     for(let i = 0; i < size; i += increment){
+    //         start = Math.floor(Math.random()*3) + start - 1;
+    //         temp_data.push(start);
+    //         temp_labels.push("timetimetime"+ i);
+    //     }
+    //     setData(temp_data);
+    //     setLabels(temp_labels);
+    // },[ props.records, props.numPoints]);
 
     return(
         <Line
             data={chartData.data}
             options={chartData.options}
+            height={600}
         />
     );
 }
