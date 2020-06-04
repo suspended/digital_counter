@@ -85,8 +85,10 @@ def update_location_threshold():
 @counter_blueprint.route('/location/statistics', methods=['POST'])
 def get_location_stats():
     location_id = request.values['location_id']
-    start_time = datetime.strptime(request.values['start_time'], '%a, %d %b %Y %H:%M:%S %Z')
-    end_time = datetime.strptime(request.values['end_time'], '%a, %d %b %Y %H:%M:%S %Z')
+    # start_time = datetime.strptime(request.values['start_time'], '%a, %d %b %Y %H:%M:%S %Z')
+    # end_time = datetime.strptime(request.values['end_time'], '%a, %d %b %Y %H:%M:%S %Z')
+    start_time = datetime.strptime(request.values['start_time'], '%Y-%m-%dT%H:%M')
+    end_time = datetime.strptime(request.values['end_time'], '%Y-%m-%dT%H:%M')
 
     stats = Counter.get_statistics(location_id, start_time, end_time)
 
