@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from datetime import datetime, timedelta
+import pytz
 
 from app.models.counter import Counter, Location
 
@@ -90,7 +91,13 @@ def get_location_stats():
     start_time = datetime.strptime(request.values['start_time'], '%Y-%m-%dT%H:%M')
     end_time = datetime.strptime(request.values['end_time'], '%Y-%m-%dT%H:%M')
 
-    stats = Counter.get_statistics(location_id, start_time, end_time)
+    local = pytz.timezone("Asia/Singapore")
+    local_start_time = local.localize(start_time, is_dst=None)
+    local_end_time = local.localize(end_time, is_dst=None)
+    utc_start_time = local_start_time.astimezone(pytz.utc)
+    utc_end_time = local_end_time.astimezone(pytz.utc)
+
+    stats = Counter.get_statistics(location_id, utc_start_time, utc_end_time)
 
     data = []
 
