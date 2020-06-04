@@ -81,3 +81,23 @@ def update_location_threshold():
         "ok_limit": location.ok_limit,
         "warning_limit": location.warning_limit
     }),  200
+
+@counter_blueprint.route('/location/statistics', methods=['POST'])
+def get_location_stats():
+    location_id = request.values['location_id']
+    start_time = datetime.strptime(request.values['start_time'], '%a, %d %b %Y %H:%M:%S %Z')
+    end_time = datetime.strptime(request.values['end_time'], '%a, %d %b %Y %H:%M:%S %Z')
+
+    stats = Counter.get_statistics(location_id, start_time, end_time)
+
+    data = []
+
+    for stat in stats:
+        data.append({
+            'count': stat.count,
+            'time' : stat.time
+        })
+
+    return jsonify({
+        'stats': data
+    }), 200
