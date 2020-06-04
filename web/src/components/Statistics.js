@@ -7,6 +7,8 @@ import {
     Button
 } from 'react-bootstrap';
 
+import { Line } from 'react-chartjs-2';
+
 import {
     get_location,
     get_statistics
@@ -101,11 +103,6 @@ function Statistics() {
         setAvg(total/recordList.length);
     }, [recordList]);
 
-    React.useEffect(() => {
-        console.log(startDate);
-        console.log(endDate);
-    }, [startDate, endDate]);
-
     return(
         <Container>
             <Row>
@@ -146,21 +143,115 @@ function Statistics() {
             </Row>
             <hr />
             <Row>
-                
+                <Col xs="4">
+                    <h4>Max: {max}</h4>
+                </Col>
+                <Col xs="4">
+                    <h4>Min: {min}</h4>
+                </Col>
+                <Col xs="4">
+                    <h4>Avg: {avg}</h4>
+                </Col>
             </Row>
             <hr />
             <Row>
-                <Col sm="12" lg="4">
-                    <h3>Max: {max}</h3>
-                </Col>
-                <Col sm="12" lg="4">
-                    <h3>Min: {min}</h3>
-                </Col>
-                <Col sm="12" lg="4">
-                    <h3>Avg: {avg}</h3>
+                <Col>
+                    <CountChart
+                        records={recordList} 
+                    />
                 </Col>
             </Row>
         </Container>
+    );
+}
+
+function CountChart(props) {
+    let [ data , setData ] = React.useState([]);
+    let [ labels , setLabels ] = React.useState([]);
+
+    let chartData = {
+        data: {
+           labels: labels,
+           datasets: [
+              {
+                 data: data,
+                 label: "Number of people",
+                 fill: false,
+                 lineTension: 0,
+                 borderColor: "#08B46B",
+                 pointBorderColor: "#08B46B",
+                 pointBackgroundColor: "#FFF",
+                 pointBorderWidth: 2,
+                 pointHoverBorderWidth: 2,
+                 pointRadius: 4
+              }
+           ]
+        },
+        options: {
+           animation: {
+              duration: 1000, // general animation time
+              easing: "easeOutBack"
+           },
+           hover: {
+              animationDuration: 1000, // duration of animations when hovering an item
+              mode: "label"
+           },
+           responsiveAnimationDuration: 1000, // animation duration after a resize
+           responsive: true,
+           scales: {
+              xAxes: [
+                 {
+                    display: true,
+                    gridLines: {
+                       color: "#f3f3f3",
+                       drawTicks: false
+                    },
+                    scaleLabel: {
+                       display: true,
+                       labelString: "Time"
+                    },
+                    ticks: {
+                       padding: 10
+                    }
+                 }
+              ],
+              yAxes: [
+                 {
+                    display: true,
+                    gridLines: {
+                       color: "#f3f3f3",
+                       drawTicks: false
+                    },
+                    scaleLabel: {
+                       display: true,
+                       labelString: "Number of People"
+                    },
+                    ticks: {
+                       padding: 10,
+                       precision: 0
+                    }
+                 }
+              ]
+           }
+        }
+     };
+
+    React.useEffect(() => {
+        let temp_data = [];
+        let temp_labels = [];
+        for(let i = 0; i < props.records.length; i++){
+            temp_data.push(props.records[i].count);
+            temp_labels.push(props.records[i].time);
+        }
+        setData(temp_data);
+        setLabels(temp_labels);
+    },[ props.records]);
+
+    return(
+        <Line
+            data={chartData.data}
+            options={chartData.options}
+        />
     );
 }
 
