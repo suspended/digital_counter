@@ -76,8 +76,21 @@ function Statistics() {
     },[locationList]);
 
     const onClickStatistics = async () => {
+        function compareRecord(a, b){
+            var date_a = new Date(a.time);
+            var date_b = new Date(b.time);
+            return date_a - date_b;
+        }
+
         let statistic_response = await get_statistics(locationID, startDate, endDate);
-        setRecordList(statistic_response.data.stats);
+        // sort response
+        let temp = statistic_response.data.stats;
+        temp.sort(compareRecord);
+        for(let i = 0; i < temp.length; i ++){
+            temp[i].time = (new Date(temp[i].time)).toLocaleString();
+        }
+
+        setRecordList(temp);
     }
 
     React.useEffect(() => {
@@ -101,7 +114,7 @@ function Statistics() {
         }
         setMax(max);
         setMin(min);
-        setAvg(total/recordList.length);
+        setAvg(Math.ceil(total/recordList.length));
     }, [recordList]);
 
     return(
