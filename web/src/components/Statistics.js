@@ -45,7 +45,7 @@ function Statistics() {
 
     let [ startDate, setStartDate ] = React.useState("");
     let [ endDate, setEndDate ] = React.useState("");
-    let [ location, setLocation] = React.useState("");
+    let [ locationID, setLocationID] = React.useState("");
 
     let [ recordList , setRecordList ] = React.useState([]);
     let [ max , setMax ] = React.useState(0);
@@ -66,11 +66,14 @@ function Statistics() {
     }, []);
 
     React.useEffect(() => {
-        setLocation(locationList[0]);
+        if(locationList.length === undefined || locationList.length === 0){
+            return;
+        }
+        setLocationID(locationList[0].id);
     },[locationList]);
 
     const onClickStatistics = async () => {
-        let statistic_response = await get_statistics(location.id, startDate, endDate);
+        let statistic_response = await get_statistics(locationID, startDate, endDate);
         setRecordList(statistic_response.data.stats);
     }
 
@@ -114,11 +117,11 @@ function Statistics() {
                 <Col sm="12" lg="3">
                     <Form.Group>
                         <Form.Label>Location:</Form.Label>
-                        <Form.Control as="select" value={location} onChange={(e) => {setLocation(e.target.value)}}>
+                        <Form.Control as="select" value={locationID} onChange={(e) => {setLocationID(e.target.value)}}>
                             {
                                 locationList.map((l) => {
                                     return (
-                            <option key={l.name + "_" + l.id} value={l.name}>{l.name}</option>
+                            <option key={l.name + "_" + l.id} value={l.id}>{l.name}</option>
                                     )
                                 })
                             }
