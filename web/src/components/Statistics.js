@@ -56,9 +56,16 @@ function Statistics() {
     let [ avg , setAvg ] = React.useState(0);
 
     React.useEffect(() => {
+        function compareLocation(a, b){
+            return a.id - b.id;
+        }
+
         async function fetchData(){
             let location_response = await get_location();
-            setLocationList(location_response.data);
+            let temp = location_response.data;
+            temp.sort(compareLocation);
+
+            setLocationList(temp);
         }
         fetchData();
         let date_start = new Date();
