@@ -36,7 +36,7 @@ function Homepage() {
         if(count > warning_limit){
             return "red" 
         } else if(count > ok_limit){
-            return "yellow"
+            return "orange"
         }
         return "green";
     };

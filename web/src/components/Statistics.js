@@ -106,7 +106,7 @@ function Statistics() {
     return(
         <Container>
             <Row>
-                <Col sm="12" lg="3">
+                <Col sm="12" lg="3" className="pt-3">
                     <h1>Statistics</h1>
                 </Col>
             </Row>
