@@ -179,11 +179,7 @@ function CountChart(props) {
                  fill: false,
                  lineTension: 0,
                  borderColor: "#08B46B",
-                 pointBorderColor: "#08B46B",
-                 pointBackgroundColor: "#FFF",
-                 pointBorderWidth: 2,
-                 pointHoverBorderWidth: 2,
-                 pointRadius: 4
+                 pointRadius: 0
               }
            ]
         },
