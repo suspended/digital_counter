@@ -43,7 +43,7 @@ function Homepage() {
 
 
     return(
-        <div className="counter_page d-flex align-items-center justify-content-center">
+        <div className="content_page d-flex align-items-center justify-content-center">
             <Container>
             {
                 locations.map((location) => {
