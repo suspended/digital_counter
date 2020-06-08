@@ -2,8 +2,7 @@ import React from 'react';
 import {
     Container,
     Row,
-    Col,
-    Card
+    Col
 } from 'react-bootstrap';
 import '../css/Homepage.css';
 
@@ -11,7 +10,7 @@ import {
     get_latest_count
 } from '../services/API';
 
-import Statistics from './Statistics';
+import DailyStatistics from './DailyStatistics';
 
 function Homepage() {
     let [ locations, setLocations] = React.useState([]);
@@ -54,30 +53,29 @@ function Homepage() {
 
 
     return(
-        <div>
-            <Container fluid className="content_page py-5">
-            {
-                locations.map((location) => {
-                    return (
-                <Row key={location.id}>
-                    <Col md={"auto"}>
-                        <Card  style={{backgroundColor: getColorForCount(location.count,location.ok_limit,location.warning_limit)}}>
-                            <h1 className="text-center mx-3 px-3" id="counter">
-                                {getTextForCount(location.count,location.ok_limit,location.warning_limit)}
-                            </h1>
-                        </Card>
-                    </Col>
-                    <Col md="auto">
-                        <h1 className="text-center">{location.name}</h1>
-                        <p className="text-center" style={{color: "white"}}>
-                            Updated on: {(new Date(location.last_updated)).toLocaleString()}
+        <div className="">
+            <Container className="content_page pt-3">
+                <Row className="border-bottom border-success p-3 text-center">
+                    <Col></Col>
+                    {
+                        locations.map((location) => {
+                            return (
+                    <Col key={location.id} md={"auto"}>
+                        <h3 className="text-center">{location.name}</h3>
+                        <h1 className="text-center m-3 p-3" id="counter" style={{backgroundColor: getColorForCount(location.count,location.ok_limit,location.warning_limit)}}>
+                            {getTextForCount(location.count,location.ok_limit,location.warning_limit)}
+                        </h1>
+                        <p className="text-center">
+                            Updated on: <strong>{(new Date(location.last_updated)).toLocaleString()}</strong>
                         </p>
                     </Col>
+                            )
+                        })
+                    }
+                    <Col></Col>
                 </Row>
-                    )
-                })
-            }
             </Container>
+            <DailyStatistics />
         </div>
     );
 }
