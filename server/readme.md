@@ -106,5 +106,12 @@ POST /location/update_threshold
 [warning_limit]
 <ok_limit>
 <warning_limit>
+
+# get statistics (time received should be SGT in yyyy-mm-ddThh:mm, 2020-06-01T08:15)
+POST /location/statistics
+[location_id]
+[start_time]
+[end_time]
+
 ```
 
