@@ -1,8 +1,10 @@
-from sqlalchemy.sql import func
+import os
 
-from datetime import datetime
+from sqlalchemy.sql import func
+from datetime import datetime, timedelta
 
 from app import db
+
 
 class Location(db.Model):
     __tablename__ = "Location"
@@ -93,3 +95,10 @@ class Counter(db.Model):
             cls.time <= end_time
         ).all()
         return results
+
+    @classmethod
+    def clear_expired_count(cls, expiry_days=7):
+        limit = datetime.now() - timedelta(days=expiry_days)
+        cls.query.filter(cls.time < limit).delete()
+        db.session.commit()
+

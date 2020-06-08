@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from flask_apscheduler import APScheduler
 from flask_cors import CORS
 
 from app.config import Config
@@ -9,6 +10,13 @@ from app.config import Config
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
+scheduler = APScheduler()
+
+@scheduler.task('cron', id='clear_old_records', hour=0)
+def clear_count_job():
+    with scheduler.app.app_context():
+        from app.models.counter import Counter
+        Counter.clear_expired_count()
 
 def create_app():
     app = Flask(__name__)
@@ -17,7 +25,10 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    scheduler.init_app(app)
     CORS(app)
+
+    scheduler.start()
 
     from app.routes.main_route import main_blueprint
     from app.routes.user_route import user_blueprint
