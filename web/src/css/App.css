@@ -3,5 +3,5 @@
     background-image: url("../images/bg_greyish_blue.png");
     background-repeat: no-repeat;
     background-size: cover;
-    min-height: calc(100vh - 56px);
+    color: white;
 }

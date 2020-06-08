@@ -2,14 +2,15 @@ import React from 'react';
 import {
     Container,
     Row,
-    Col,
-    Card
+    Col
 } from 'react-bootstrap';
 import '../css/Homepage.css';
 
 import {
     get_latest_count
 } from '../services/API';
+
+import DailyStatistics from './DailyStatistics';
 
 function Homepage() {
     let [ locations, setLocations] = React.useState([]);
@@ -34,37 +35,47 @@ function Homepage() {
 
     const getColorForCount = (count, ok_limit, warning_limit) => {
         if(count > warning_limit){
-            return "red" 
+            return "red"; 
         } else if(count > ok_limit){
-            return "orange"
+            return "orange";
         }
         return "green";
     };
 
+    const getTextForCount = (count, ok_limit, warning_limit) => {
+        if(count > warning_limit){
+            return "Crowded";
+        } else if(count > ok_limit){
+            return "Some Crowd";
+        }
+        return "Not Crowded";
+    };
+
 
     return(
-        <div className="content_page d-flex align-items-center justify-content-center">
-            <Container>
-            {
-                locations.map((location) => {
-                    return (
-                <Row key={location.id} className="counter_header p-3">
-                    <Col md={"auto"}>
-                        <Card>
-                            <h1 className="display-1 text-center mx-3 px-3" id="counter" style={{color: getColorForCount(location.count,location.ok_limit,location.warning_limit)}}>{location.count}</h1>
-                        </Card>
-                    </Col>
-                    <Col md="auto">
-                        <h1>People in {location.name}</h1>
-                        <p className="text-left" style={{color: "white"}}>
-                            Updated on: {(new Date(location.last_updated)).toLocaleString()}
+        <div className="">
+            <Container className="content_page pt-3">
+                <Row className="border-bottom border-success p-3 text-center">
+                    <Col></Col>
+                    {
+                        locations.map((location) => {
+                            return (
+                    <Col key={location.id} md={"auto"}>
+                        <h3 className="text-center">{location.name}</h3>
+                        <h1 className="text-center m-3 p-3" id="counter" style={{backgroundColor: getColorForCount(location.count,location.ok_limit,location.warning_limit)}}>
+                            {getTextForCount(location.count,location.ok_limit,location.warning_limit)}
+                        </h1>
+                        <p className="text-center">
+                            Updated on: <strong>{(new Date(location.last_updated)).toLocaleString()}</strong>
                         </p>
                     </Col>
+                            )
+                        })
+                    }
+                    <Col></Col>
                 </Row>
-                    )
-                })
-            }
             </Container>
+            <DailyStatistics />
         </div>
     );
 }
