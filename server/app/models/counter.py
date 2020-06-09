@@ -90,11 +90,11 @@ class Counter(db.Model):
 
     @classmethod
     def get_statistics(cls, location_id, start_time, end_time):
-        results = db.session.query(cls).options(FromCache(cache)).filter(
+        results = db.session.query(cls).filter(
             cls.location_id==location_id,
             cls.time >= start_time,
             cls.time <= end_time
-        ).all()
+        ).options(FromCache(cache)).all()
         return results
 
     @classmethod
