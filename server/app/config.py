@@ -6,3 +6,6 @@ class Config(object):
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'my-very-secret-key'
 
     SCHEDULER_API_ENABLED = True
+
+    CACHE_TYPE = 'simple'
+    CACHE_DEFAULT_TIMEOUT = 600

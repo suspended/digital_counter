@@ -1,9 +1,10 @@
 import os
 
 from sqlalchemy.sql import func
+from flask_sqlalchemy_caching import FromCache
 from datetime import datetime, timedelta
 
-from app import db
+from app import db, cache
 
 
 class Location(db.Model):
@@ -93,7 +94,7 @@ class Counter(db.Model):
             cls.location_id==location_id,
             cls.time >= start_time,
             cls.time <= end_time
-        ).all()
+        ).options(FromCache(cache)).all()
         return results
 
     @classmethod
