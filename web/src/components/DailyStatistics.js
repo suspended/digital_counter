@@ -11,7 +11,7 @@ import { Line } from 'react-chartjs-2';
 
 import {
     get_location,
-    get_daily_statistics
+    get_statistics
 } from '../services/API';
 
 // eslint-disable-next-line
@@ -64,6 +64,7 @@ function DailyStatistics() {
 
     let [ showSpinner, setShowSpinner ] = React.useState(false);
 
+    let [ recordList , setRecordList ] = React.useState([]);
     let [ displayList, setDisplayList ] = React.useState([]);
     let [ max , setMax ] = React.useState(0);
     let [ min , setMin ] = React.useState(0);
@@ -97,25 +98,30 @@ function DailyStatistics() {
         if(locationID === "" || date === ""){
             return;
         }
-        
+
+        function compareRecord(a, b){
+            var date_a = new Date(a.time);
+            var date_b = new Date(b.time);
+            return date_a - date_b;
+        }
         async function fetchData(){
             setShowSpinner(true);
-            let target_date = new Date(date);
-            target_date.setHours(0);
+            let startDate = new Date(date);
+            let endDate = new Date(date);
+            endDate.setDate(endDate.getDate() + 1);
+            // set hours to 0 to get string in local time
+            startDate.setHours(0);
+            endDate.setHours(0);
 
-            let statistic_response = await get_daily_statistics(locationID, target_date.getDateInputString());
-            let temp = statistic_response.data;
-            for(let i = 0; i < temp.length; i++){
-                let time;
-                if(i < 10){
-                    time = "0" + i + "00";
-                } else {
-                    time = i + "00";
-                }
-                temp[i].time = time;
+            let statistic_response = await get_statistics(locationID, startDate.getDateTimeInputString(), endDate.getDateTimeInputString());
+            // sort response
+            let temp = statistic_response.data.stats;
+            temp.sort(compareRecord);
+            for(let i = 0; i < temp.length; i ++){
+                temp[i].time = (new Date(temp[i].time)).toLocaleString();
             }
-
-            setDisplayList(temp);
+    
+            setRecordList(temp);
             setShowSpinner(false);
         }
         
@@ -123,30 +129,91 @@ function DailyStatistics() {
     }, [date, locationID]);
 
     React.useEffect(() => {
-        if(displayList === undefined || displayList.length === 0){
+        if(recordList === undefined || recordList.length === 0){
             setMax("-");
             setMin("-");
             setAvg("-");
             return;
         }
-
         let max = 0;
-        let min = Number.MAX_VALUE;
+        let min = 999;
         let total = 0;
-
-        for(let i = 0; i < displayList.length; i++){
-            if(displayList[i].max > max){
-                max = displayList[i].max
+        for(let i = 0; i < recordList.length; i++){
+            if(recordList[i].count > max){
+                max = recordList[i].count
             }
-            if(displayList[i].min < min){
-                min = displayList[i].min
+            if(recordList[i].count < min){
+                min = recordList[i].count
             }
-            total = total + displayList[i].average
+            total = total + recordList[i].count
         }
         setMax(max);
         setMin(min);
-        setAvg(Math.ceil(total/displayList.length));
-    }, [displayList]);
+        setAvg(Math.ceil(total/recordList.length));
+    }, [recordList]);
+
+    React.useEffect(() => {
+        function calculateMax(arr){
+            let max = 0;
+            for(let i = 0; i < arr.length; i++){
+                if(arr[i].count > max){
+                    max = arr[i].count
+                }
+            }
+            return max;
+        }
+
+        function calculateMin(arr){
+            let min = Number.MAX_VALUE;
+            for(let i = 0; i < arr.length; i++){
+                if(arr[i].count < min){
+                    min = arr[i].count
+                }
+            }
+            if(min === Number.MAX_VALUE){
+                min = 0;
+            }
+            return min;
+        }
+
+        function calculateAvg(arr){
+            let total = 0;
+            for(let i = 0; i < arr.length; i++){
+                total = total + arr[i].count
+            }
+            if(arr.length === 0){
+                return 0;
+            }
+            return Math.ceil(total/arr.length);
+        }
+
+        let tempList = new Array(24);
+        for(let i = 0; i < tempList.length; i++){
+            tempList[i] = [];
+        }
+
+        for(let j = 0; j < recordList.length; j ++){
+            let record_date = new Date(recordList[j].time);
+            tempList[record_date.getHours()].push(recordList[j]);
+        }
+
+        for(let k = 0; k < tempList.length; k++){
+            let max, min, avg, time;
+
+            if(k < 10){
+                time = "0" + k + "00";
+            } else {
+                time = k + "00";
+            }
+            max = calculateMax(tempList[k]);
+            min = calculateMin(tempList[k]);
+            avg = calculateAvg(tempList[k]);
+            tempList[k] = {max:max,min:min,avg:avg,time:time};
+        }
+        
+        setDisplayList(tempList);
+
+    }, [recordList]);
 
     return(
         <Container>
@@ -301,7 +368,7 @@ function DailyCountChart(props) {
         for(let i = 0; i < props.records.length; i ++){
             temp_max.push(props.records[i].max);
             temp_min.push(props.records[i].min);
-            temp_avg.push(props.records[i].average);
+            temp_avg.push(props.records[i].avg);
             temp_labels.push(props.records[i].time);
             // temp_labels.push("");
         }
