@@ -112,6 +112,12 @@ POST /location/statistics
 [location_id]
 [start_time]
 [end_time]
+<[{count,time},]>
 
+# get daily statistic (target_date received should be SGT in yyyy-mm-dd, 2020-06-01)
+POST /location/daily_statistics
+[location_id]
+[target_date]
+<[{max,min,average,time},]> size 24
 ```
 

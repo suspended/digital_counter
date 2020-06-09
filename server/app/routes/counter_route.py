@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from datetime import datetime, timedelta
+
+import sys
+import math
 import pytz
 
 from app.models.counter import Counter, Location
@@ -110,3 +113,59 @@ def get_location_stats():
     return jsonify({
         'stats': data
     }), 200
+
+@counter_blueprint.route('/location/daily_statistics', methods=['POST'])
+def get_daily_stats():
+    location_id = request.values['location_id']
+    target_date = datetime.strptime(request.values['target_date'], '%Y-%m-%d')
+
+    local = pytz.timezone("Asia/Singapore")
+    local_start_time = local.localize(target_date, is_dst=None)
+    local_end_time = local.localize(target_date + timedelta(days=1), is_dst=None)
+    utc_start_time = local_start_time.astimezone(pytz.utc)
+    utc_end_time = local_end_time.astimezone(pytz.utc)
+
+    data = []
+
+    for i in range(24):
+        records = Counter.get_statistics(location_id, utc_start_time + timedelta(hours=i), utc_start_time + timedelta(hours=i+1))
+        data.append({
+            "max": calculate_max(records),
+            "min": calculate_min(records),
+            "average": calculate_avg(records),
+            "time": utc_start_time + timedelta(hours=i)
+        })
+
+    return jsonify(data), 200
+
+
+def calculate_max(records):
+    max_count = 0
+    for record in records:
+        if record.count > max_count:
+            max_count = record.count
+
+    return max_count
+
+def calculate_min(records):
+    min_count = sys.maxsize
+    for record in records:
+        if record.count < min_count:
+            min_count = record.count
+    
+    if min_count == sys.maxsize:
+        min_count = 0
+    
+    return min_count
+
+def calculate_avg(records):
+    total = 0
+
+    if len(records) == 0:
+        return 0;
+
+    for record in records:
+        total = total + record.count
+    
+    
+    return math.ceil(total/len(records))
