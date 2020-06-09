@@ -7,6 +7,5 @@ class Config(object):
 
     SCHEDULER_API_ENABLED = True
 
-    CACHE_TYPE = 'filesystem'
+    CACHE_TYPE = 'simple'
     CACHE_DEFAULT_TIMEOUT = 600
-    CACHE_DIR = '/tmp/dc_cache'
