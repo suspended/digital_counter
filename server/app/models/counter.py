@@ -226,11 +226,15 @@ class CounterStat(db.Model):
             local.localize(past_1, is_dst=None).astimezone(pytz.utc), 
             local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
+        print("Zone past1" + str(local.localize(past_1, is_dst=None).astimezone(pytz.utc)), flush=True)
+        print("Zone past1" + str(local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)), flush=True)
         current_records = Counter.get_statistics(
             location_id, 
             local.localize(current,is_dst=None).astimezone(pytz.utc), 
             local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
+        print("Zone current" + str(local.localize(current,is_dst=None).astimezone(pytz.utc)), flush=True)
+        print("Zone current" + str(local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)), flush=True)
 
         print("Current post zone: " + str(current), flush=True)
         print("past1 post zone: " + str(past_1), flush=True)
