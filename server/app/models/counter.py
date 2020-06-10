@@ -250,6 +250,7 @@ class CounterStat(db.Model):
         past_1_counterstat.max_count = calculate_max(past_1_records)
         past_1_counterstat.min_count = calculate_min(past_1_records)
         past_1_counterstat.avg_count = calculate_avg(past_1_records)
+        print(calculate_avg(past_1_records), flush=True)
         print(past_1_counterstat.avg_count, flush=True)
 
         current_counterstat = cls.query.filter(
@@ -262,6 +263,7 @@ class CounterStat(db.Model):
         current_counterstat.max_count = calculate_max(current_records)
         current_counterstat.min_count = calculate_min(current_records)
         current_counterstat.avg_count = calculate_avg(current_records)
+        print(calculate_avg(current_records), flush=True)
         print(current_counterstat.avg_count, flush=True)
 
         db.session.commit()
