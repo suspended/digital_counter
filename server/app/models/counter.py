@@ -133,8 +133,9 @@ class CounterStat(db.Model):
     def check_previous_days_exists(cls, location_id):
         # creates if not exist
         for i in range(7):
-            local = pytz.timezone("Asia/Singapore")
-            target_date = date.today() - timedelta(days=7-1-i)
+            target_date = datetime.utcnow() - timedelta(days=6-i)
+            target_date = target_date.replace(tzinfo=pytz.utc)
+            sgt = pytz.timezone("Asia/Singapore")
             for target_hour in range(24):
                 query = db.session.query(cls).filter(
                     cls.location_id==location_id,
@@ -143,15 +144,18 @@ class CounterStat(db.Model):
                 )
                 record = query.first()
                 if record is None:
+                    target_datetime = datetime.combine(target_date.date(), time(hour=target_hour))
+                    target_datetime = target_datetime.replace(tzinfo=pytz.utc)
                     records = Counter.get_statistics(
                         location_id,
-                        (local.localize(datetime.combine(target_date, time(hour=target_hour)), is_dst=None)).astimezone(pytz.utc),
-                        (local.localize(datetime.combine(target_date, time(hour=target_hour))+ timedelta(hours=1), is_dst=None)).astimezone(pytz.utc)
+                        target_datetime,
+                        target_datetime+ timedelta(hours=1)
                     )
+                    sgt_datetime = target_datetime.astimezone(sgt)
                     counterStat = CounterStat(
                         location_id,
-                        target_date,
-                        target_hour,
+                        sgt_datetime.date(),
+                        sgt_datetime.hour,
                         calculate_max(records),
                         calculate_min(records),
                         calculate_avg(records)
@@ -166,6 +170,7 @@ class CounterStat(db.Model):
         
         # get datetiume for the the current and past record
         current = datetime.now()
+        current = current.replace(tzinfo=pytz.utc)
         current = current.replace(minute=0)
         current = current.replace(second=0)
         current = current.replace(microsecond=0)
@@ -176,20 +181,24 @@ class CounterStat(db.Model):
         # get 2 latest counter records
         past_1_records = Counter.get_statistics(
             location_id, 
-            local.localize(past_1, is_dst=None).astimezone(pytz.utc), 
-            local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
+            past_1, 
+            past_1 + timedelta(hours=1)
         )
         current_records = Counter.get_statistics(
             location_id, 
-            local.localize(current,is_dst=None).astimezone(pytz.utc), 
-            local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
+            current, 
+            current + timedelta(hours=1)
         )
+
+        sgt = pytz.timezone("Asia/Singapore")
+        sgt_current = current.astimezone(sgt)
+        sgt_past_1 = past_1.astimezone(sgt)
 
         # update 2 latest record (incase miss any)
         past_1_counterstat = cls.query.filter(
             cls.location_id == location_id,
-            cls.date == past_1.date(),
-            cls.hour == past_1.hour
+            cls.date == sgt_past_1.date(),
+            cls.hour == sgt_past_1.hour
         ).first()
         past_1_counterstat.max_count = calculate_max(past_1_records)
         past_1_counterstat.min_count = calculate_min(past_1_records)
@@ -197,8 +206,8 @@ class CounterStat(db.Model):
 
         current_counterstat = cls.query.filter(
             cls.location_id == location_id,
-            cls.date == current.date(),
-            cls.hour == current.hour
+            cls.date == sgt_current.date(),
+            cls.hour == sgt_current.hour
         ).first()
         current_counterstat.max_count = calculate_max(current_records)
         current_counterstat.min_count = calculate_min(current_records)
@@ -208,8 +217,9 @@ class CounterStat(db.Model):
 
     @classmethod
     def cron_job_update(cls, location_id):
-        # get datetiume for the the current and past record
-        current = datetime.now()
+       # get datetiume for the the current and past record
+        current = datetime.utcnow()
+        current = current.replace(tzinfo=pytz.utc)
         current = current.replace(minute=0)
         current = current.replace(second=0)
         current = current.replace(microsecond=0)
@@ -217,58 +227,41 @@ class CounterStat(db.Model):
         past_1 = past_1 - timedelta(hours=1)
         local = pytz.timezone("Asia/Singapore")
 
-        print("Current no zone: " + str(current), flush=True)
-        print("past1 no zone: " + str(past_1), flush=True)
-
         # get 2 latest counter records
         past_1_records = Counter.get_statistics(
             location_id, 
-            local.localize(past_1, is_dst=None).astimezone(pytz.utc), 
-            local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
+            past_1, 
+            past_1 + timedelta(hours=1)
         )
-        print("Zone past1" + str(local.localize(past_1, is_dst=None).astimezone(pytz.utc)), flush=True)
-        print("Zone past1" + str(local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)), flush=True)
         current_records = Counter.get_statistics(
             location_id, 
-            local.localize(current,is_dst=None).astimezone(pytz.utc), 
-            local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
+            current, 
+            current + timedelta(hours=1)
         )
-        print("Zone current" + str(local.localize(current,is_dst=None).astimezone(pytz.utc)), flush=True)
-        print("Zone current" + str(local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)), flush=True)
 
-        print("Current post zone: " + str(current), flush=True)
-        print("past1 post zone: " + str(past_1), flush=True)
-        print("Size past record", flush=True)
-        print(len(past_1_records), flush=True)
-        print("Size current record", flush=True)
-        print(len(current_records), flush=True)
+        sgt = pytz.timezone("Asia/Singapore")
+        sgt_current = current.astimezone(sgt)
+        sgt_past_1 = past_1.astimezone(sgt)
+
 
         # update 2 latest record (incase miss any)
         past_1_counterstat = cls.query.filter(
             cls.location_id == location_id,
-            cls.date == past_1.date(),
-            cls.hour == past_1.hour
+            cls.date == sgt_past_1.date(),
+            cls.hour == sgt_past_1.hour
         ).first()
-        print("past 1 obj", flush=True)
-        print(past_1_counterstat.avg_count, flush=True)
         past_1_counterstat.max_count = calculate_max(past_1_records)
         past_1_counterstat.min_count = calculate_min(past_1_records)
         past_1_counterstat.avg_count = calculate_avg(past_1_records)
-        print(calculate_avg(past_1_records), flush=True)
-        print(past_1_counterstat.avg_count, flush=True)
 
         current_counterstat = cls.query.filter(
             cls.location_id == location_id,
-            cls.date == current.date(),
-            cls.hour == current.hour
+            cls.date == sgt_current.date(),
+            cls.hour == sgt_current.hour
         ).first()
-        print("current obj", flush=True)
-        print(current_counterstat.avg_count, flush=True)
         current_counterstat.max_count = calculate_max(current_records)
         current_counterstat.min_count = calculate_min(current_records)
         current_counterstat.avg_count = calculate_avg(current_records)
-        print(calculate_avg(current_records), flush=True)
-        print(current_counterstat.avg_count, flush=True)
 
         db.session.commit()
 
