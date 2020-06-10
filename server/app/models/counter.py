@@ -133,6 +133,7 @@ class CounterStat(db.Model):
     def check_previous_days_exists(cls, location_id):
         # creates if not exist
         for i in range(7):
+            local = pytz.timezone("Asia/Singapore")
             target_date = date.today() - timedelta(days=7-1-i)
             for target_hour in range(24):
                 query = db.session.query(cls).filter(
@@ -144,8 +145,8 @@ class CounterStat(db.Model):
                 if record is None:
                     records = Counter.get_statistics(
                         location_id,
-                        (datetime.combine(target_date, time(hour=target_hour))).astimezone(pytz.utc),
-                        (datetime.combine(target_date, time(hour=target_hour))+ timedelta(hours=1)).astimezone(pytz.utc)
+                        (local.localize(datetime.combine(target_date, time(hour=target_hour)), is_dst=None)).astimezone(pytz.utc),
+                        (local.localize(datetime.combine(target_date, time(hour=target_hour))+ timedelta(hours=1), is_dst=None)).astimezone(pytz.utc)
                     )
                     counterStat = CounterStat(
                         location_id,
@@ -170,17 +171,18 @@ class CounterStat(db.Model):
         current = current.replace(microsecond=0)
         past_1 = current
         past_1 = past_1 - timedelta(hours=1)
+        local = pytz.timezone("Asia/Singapore")
 
         # get 2 latest counter records
         past_1_records = Counter.get_statistics(
             location_id, 
-            past_1.astimezone(pytz.utc), 
-            (past_1 + timedelta(hours=1)).astimezone(pytz.utc)
+            local.localize(past_1, is_dst=None).astimezone(pytz.utc), 
+            local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
         current_records = Counter.get_statistics(
             location_id, 
-            current.astimezone(pytz.utc), 
-            (current + timedelta(hours=1)).astimezone(pytz.utc)
+            local.localize(current,is_dst=None).astimezone(pytz.utc), 
+            local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
 
         # update 2 latest record (incase miss any)
