@@ -166,6 +166,35 @@ def activate_cron_job():
         "data": data
     }), 200
 
+@counter_blueprint.route('/run_cron_update', methods=['GET'])
+def activate_cron_update():
+
+    locations = Location.get_all_location()
+
+    start = datetime.now()
+    for location in locations:
+        CounterStat.cron_job_update(location.id)
+    end = datetime.now()
+
+    today = date.today()
+    todayStats = CounterStat.get_day_stats(1, today)
+
+    data = []
+
+    for record in todayStats:
+        data.append({
+            "location_id": record.location_id,
+            "max": record.max_count,
+            "min": record.min_count,
+            "avg": record.avg_count,
+            "hour": record.hour,
+            "date": record.date.isoformat()
+        })
+
+    return jsonify({
+        "time_taken": (str(start) + " --- " + str(end)),
+        "data": data
+    }), 200
 
 def calculate_max(records):
     max_count = 0

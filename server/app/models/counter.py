@@ -206,6 +206,65 @@ class CounterStat(db.Model):
 
         db.session.commit()
 
+    @classmethod
+    def cron_job_update(cls, location_id):
+        # get datetiume for the the current and past record
+        current = datetime.now()
+        current = current.replace(minute=0)
+        current = current.replace(second=0)
+        current = current.replace(microsecond=0)
+        past_1 = current
+        past_1 = past_1 - timedelta(hours=1)
+        local = pytz.timezone("Asia/Singapore")
+
+        print("Current no zone: " + str(current), flush=True)
+        print("past1 no zone: " + str(past_1), flush=True)
+
+        # get 2 latest counter records
+        past_1_records = Counter.get_statistics(
+            location_id, 
+            local.localize(past_1, is_dst=None).astimezone(pytz.utc), 
+            local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
+        )
+        current_records = Counter.get_statistics(
+            location_id, 
+            local.localize(current,is_dst=None).astimezone(pytz.utc), 
+            local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
+        )
+
+        print("Current post zone: " + str(current), flush=True)
+        print("past1 post zone: " + str(past_1), flush=True)
+        print("Size past record", flush=True)
+        print(len(past_1_records), flush=True)
+        print("Size current record", flush=True)
+        print(len(current_records), flush=True)
+
+        # update 2 latest record (incase miss any)
+        past_1_counterstat = cls.query.filter(
+            cls.location_id == location_id,
+            cls.date == past_1.date(),
+            cls.hour == past_1.hour
+        ).first()
+        print("past 1 obj", flush=True)
+        print(past_1_counterstat.avg_count, flush=True)
+        past_1_counterstat.max_count = calculate_max(past_1_records)
+        past_1_counterstat.min_count = calculate_min(past_1_records)
+        past_1_counterstat.avg_count = calculate_avg(past_1_records)
+        print(past_1_counterstat.avg_count, flush=True)
+
+        current_counterstat = cls.query.filter(
+            cls.location_id == location_id,
+            cls.date == current.date(),
+            cls.hour == current.hour
+        ).first()
+        print("current obj", flush=True)
+        print(current_counterstat.avg_count, flush=True)
+        current_counterstat.max_count = calculate_max(current_records)
+        current_counterstat.min_count = calculate_min(current_records)
+        current_counterstat.avg_count = calculate_avg(current_records)
+        print(current_counterstat.avg_count, flush=True)
+
+        db.session.commit()
 
 def calculate_max(records):
     max_count = 0
