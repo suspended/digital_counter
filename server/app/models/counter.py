@@ -176,13 +176,13 @@ class CounterStat(db.Model):
         # get 2 latest counter records
         past_1_records = Counter.get_statistics(
             location_id, 
-            past_1, 
-            past_1 + timedelta(hours=1)
+            local.localize(past_1, is_dst=None).astimezone(pytz.utc), 
+            local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
         current_records = Counter.get_statistics(
             location_id, 
-            current, 
-            current + timedelta(hours=1)
+            local.localize(current,is_dst=None).astimezone(pytz.utc), 
+            local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
 
         # update 2 latest record (incase miss any)
@@ -223,15 +223,15 @@ class CounterStat(db.Model):
         # get 2 latest counter records
         past_1_records = Counter.get_statistics(
             location_id, 
-            past_1, 
-            past_1 + timedelta(hours=1)
+            local.localize(past_1, is_dst=None).astimezone(pytz.utc), 
+            local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
         print("Zone past1" + str(local.localize(past_1, is_dst=None).astimezone(pytz.utc)), flush=True)
         print("Zone past1" + str(local.localize(past_1 + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)), flush=True)
         current_records = Counter.get_statistics(
             location_id, 
-            current, 
-            current + timedelta(hours=1)
+            local.localize(current,is_dst=None).astimezone(pytz.utc), 
+            local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)
         )
         print("Zone current" + str(local.localize(current,is_dst=None).astimezone(pytz.utc)), flush=True)
         print("Zone current" + str(local.localize(current + timedelta(hours=1), is_dst=None).astimezone(pytz.utc)), flush=True)
