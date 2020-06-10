@@ -165,7 +165,7 @@ class CounterStat(db.Model):
                     db.session.commit()
 
     @classmethod
-    def the_cron_job_function(cls, location_id):
+    def update_daily_stats(cls, location_id):
         # check previous days records
         cls.check_previous_days_exists(location_id)
         
@@ -216,55 +216,6 @@ class CounterStat(db.Model):
 
         db.session.commit()
 
-    @classmethod
-    def cron_job_update(cls, location_id):
-       # get datetiume for the the current and past record
-        current = datetime.utcnow()
-        current = current.replace(tzinfo=pytz.utc)
-        current = current.replace(minute=0)
-        current = current.replace(second=0)
-        current = current.replace(microsecond=0)
-        past_1 = current
-        past_1 = past_1 - timedelta(hours=1)
-        local = pytz.timezone("Asia/Singapore")
-
-        # get 2 latest counter records
-        past_1_records = Counter.get_statistics(
-            location_id, 
-            past_1, 
-            past_1 + timedelta(hours=1)
-        )
-        current_records = Counter.get_statistics(
-            location_id, 
-            current, 
-            current + timedelta(hours=1)
-        )
-
-        sgt = pytz.timezone("Asia/Singapore")
-        sgt_current = current.astimezone(sgt)
-        sgt_past_1 = past_1.astimezone(sgt)
-
-
-        # update 2 latest record (incase miss any)
-        past_1_counterstat = cls.query.filter(
-            cls.location_id == location_id,
-            cls.date == sgt_past_1.date(),
-            cls.hour == sgt_past_1.hour
-        ).first()
-        past_1_counterstat.max_count = calculate_max(past_1_records)
-        past_1_counterstat.min_count = calculate_min(past_1_records)
-        past_1_counterstat.avg_count = calculate_avg(past_1_records)
-
-        current_counterstat = cls.query.filter(
-            cls.location_id == location_id,
-            cls.date == sgt_current.date(),
-            cls.hour == sgt_current.hour
-        ).first()
-        current_counterstat.max_count = calculate_max(current_records)
-        current_counterstat.min_count = calculate_min(current_records)
-        current_counterstat.avg_count = calculate_avg(current_records)
-
-        db.session.commit()
 
 def calculate_max(records):
     max_count = 0

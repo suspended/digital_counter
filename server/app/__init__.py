@@ -20,14 +20,13 @@ def clear_count_job():
 
 @scheduler.task('interval', id='calculate_stats', minutes=1)
 def calculate_stats_job():
-    print("running calculate stats")
     with scheduler.app.app_context():
         from app.models.counter import Location, CounterStat
 
         locations = Location.get_all_location()
 
         for location in locations:
-            CounterStat.the_cron_job_function(location.id)
+            CounterStat.update_daily_stats(location.id)
 
 
 def create_app():
