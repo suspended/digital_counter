@@ -119,7 +119,7 @@ def get_daily_stats():
     location_id = request.values['location_id']
     target_date = date.fromisoformat(request.values['target_date'])
 
-    records = CounterStat.get_day_stats(1, target_date)
+    records = CounterStat.get_day_stats(int(location_id), target_date)
     data = []
 
     for record in records:
