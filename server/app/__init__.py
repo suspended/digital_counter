@@ -18,7 +18,7 @@ def clear_count_job():
         from app.models.counter import Counter
         Counter.clear_expired_count()
 
-@scheduler.task('interval', id='calculate_stats', minutes=5)
+@scheduler.task('interval', id='calculate_stats', minutes=1)
 def calculate_stats_job():
     print("running calculate stats")
     with scheduler.app.app_context():
