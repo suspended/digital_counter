@@ -137,21 +137,22 @@ class CounterStat(db.Model):
             target_date = target_date.replace(tzinfo=pytz.utc)
             sgt = pytz.timezone("Asia/Singapore")
             for target_hour in range(24):
+                target_datetime = datetime.combine(target_date.date(), time(hour=target_hour))
+                target_datetime = target_datetime.replace(tzinfo=pytz.utc)
+                sgt_datetime = target_datetime.astimezone(sgt)
+
                 query = db.session.query(cls).filter(
                     cls.location_id==location_id,
-                    cls.date==target_date,
-                    cls.hour==target_hour
+                    cls.date==sgt_datetime.date(),
+                    cls.hour==sgt_datetime.hour
                 )
                 record = query.first()
                 if record is None:
-                    target_datetime = datetime.combine(target_date.date(), time(hour=target_hour))
-                    target_datetime = target_datetime.replace(tzinfo=pytz.utc)
                     records = Counter.get_statistics(
                         location_id,
                         target_datetime,
                         target_datetime+ timedelta(hours=1)
                     )
-                    sgt_datetime = target_datetime.astimezone(sgt)
                     counterStat = CounterStat(
                         location_id,
                         sgt_datetime.date(),
