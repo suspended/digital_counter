@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 import sys
 import math
 import pytz
 
-from app.models.counter import Counter, Location
+from app.models.counter import Counter, Location, CounterStat
 
 counter_blueprint = Blueprint('counter_blueprint', __name__)
 
@@ -117,26 +117,54 @@ def get_location_stats():
 @counter_blueprint.route('/location/daily_statistics', methods=['POST'])
 def get_daily_stats():
     location_id = request.values['location_id']
-    target_date = datetime.strptime(request.values['target_date'], '%Y-%m-%d')
+    target_date = date.fromisoformat(request.values['target_date'])
 
-    local = pytz.timezone("Asia/Singapore")
-    local_start_time = local.localize(target_date, is_dst=None)
-    local_end_time = local.localize(target_date + timedelta(days=1), is_dst=None)
-    utc_start_time = local_start_time.astimezone(pytz.utc)
-    utc_end_time = local_end_time.astimezone(pytz.utc)
+    records = CounterStat.get_day_stats(1, target_date)
+    data = []
+
+    for record in records:
+        data.append({
+            "location_id": record.location_id,
+            "max": record.max_count,
+            "min": record.min_count,
+            "avg": record.avg_count,
+            "hour": record.hour,
+            "date": record.date.isoformat()
+        })
+
+    data = sorted(data, key=lambda i: i['hour'])
+
+    return jsonify(data), 200
+
+@counter_blueprint.route('/run_cron', methods=['GET'])
+def activate_cron_job():
+
+    locations = Location.get_all_location()
+
+    start = datetime.now()
+    for location in locations:
+        CounterStat.the_cron_job_function(location.id)
+    end = datetime.now()
+
+    today = date.today()
+    todayStats = CounterStat.get_day_stats(1, today)
 
     data = []
 
-    for i in range(24):
-        records = Counter.get_statistics(location_id, utc_start_time + timedelta(hours=i), utc_start_time + timedelta(hours=i+1))
+    for record in todayStats:
         data.append({
-            "max": calculate_max(records),
-            "min": calculate_min(records),
-            "average": calculate_avg(records),
-            "time": utc_start_time + timedelta(hours=i)
+            "location_id": record.location_id,
+            "max": record.max_count,
+            "min": record.min_count,
+            "avg": record.avg_count,
+            "hour": record.hour,
+            "date": record.date.isoformat()
         })
 
-    return jsonify(data), 200
+    return jsonify({
+        "time_taken": (str(start) + " --- " + str(end)),
+        "data": data
+    }), 200
 
 
 def calculate_max(records):

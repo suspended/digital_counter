@@ -1,7 +1,10 @@
 import os
+import sys
+import math
+import pytz
 
 from sqlalchemy.sql import func
-from datetime import datetime, timedelta
+from datetime import date, time, datetime, timedelta
 
 from app import db
 
@@ -102,3 +105,133 @@ class Counter(db.Model):
         cls.query.filter(cls.time < limit).delete()
         db.session.commit()
 
+class CounterStat(db.Model):
+    __tablename__ = "CounterStat"
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    hour = db.Column(db.Integer, nullable=False)
+    max_count = db.Column(db.Integer, nullable=False)
+    min_count = db.Column(db.Integer, nullable=False)
+    avg_count = db.Column(db.Integer, nullable=False)
+
+    location_id = db.Column(db.Integer, db.ForeignKey('Location.id'), nullable=False)
+
+    def __init__(self, location_id, date, hour, max_count=0, min_count=0, avg_count=0):
+        self.location_id = location_id
+        self.date = date
+        self.hour = hour
+        self.max_count = max_count
+        self.min_count = min_count
+        self.avg_count = avg_count
+
+    @classmethod
+    def get_day_stats(cls, location_id, target_date):
+        records = cls.query.filter(cls.location_id==location_id,cls.date==target_date).all()
+        return records
+
+    @classmethod
+    def check_previous_days_exists(cls, location_id):
+        # creates if not exist
+        for i in range(7):
+            target_date = date.today() - timedelta(days=7-1-i)
+            for target_hour in range(24):
+                query = db.session.query(cls).filter(
+                    cls.location_id==location_id,
+                    cls.date==target_date,
+                    cls.hour==target_hour
+                )
+                record = query.first()
+                if record is None:
+                    records = Counter.get_statistics(
+                        location_id,
+                        (datetime.combine(target_date, time(hour=target_hour))).astimezone(pytz.utc),
+                        (datetime.combine(target_date, time(hour=target_hour))+ timedelta(hours=1)).astimezone(pytz.utc)
+                    )
+                    counterStat = CounterStat(
+                        location_id,
+                        target_date,
+                        target_hour,
+                        calculate_max(records),
+                        calculate_min(records),
+                        calculate_avg(records)
+                    )
+                    db.session.add(counterStat)
+                    db.session.commit()
+
+    @classmethod
+    def the_cron_job_function(cls, location_id):
+        # check previous days records
+        cls.check_previous_days_exists(location_id)
+        
+        # get datetiume for the the current and past record
+        current = datetime.now()
+        current = current.replace(minute=0)
+        current = current.replace(second=0)
+        current = current.replace(microsecond=0)
+        past_1 = current
+        past_1 = past_1 - timedelta(hours=1)
+
+        # get 2 latest counter records
+        past_1_records = Counter.get_statistics(
+            location_id, 
+            past_1.astimezone(pytz.utc), 
+            (past_1 + timedelta(hours=1)).astimezone(pytz.utc)
+        )
+        current_records = Counter.get_statistics(
+            location_id, 
+            current.astimezone(pytz.utc), 
+            (current + timedelta(hours=1)).astimezone(pytz.utc)
+        )
+
+        # update 2 latest record (incase miss any)
+        past_1_counterstat = cls.query.filter(
+            cls.location_id == location_id,
+            cls.date == past_1.date(),
+            cls.hour == past_1.hour
+        ).first()
+        past_1_counterstat.max_count = calculate_max(past_1_records)
+        past_1_counterstat.min_count = calculate_min(past_1_records)
+        past_1_counterstat.avg_count = calculate_avg(past_1_records)
+
+        current_counterstat = cls.query.filter(
+            cls.location_id == location_id,
+            cls.date == current.date(),
+            cls.hour == current.hour
+        ).first()
+        current_counterstat.max_count = calculate_max(current_records)
+        current_counterstat.min_count = calculate_min(current_records)
+        current_counterstat.avg_count = calculate_avg(current_records)
+
+        db.session.commit()
+
+
+def calculate_max(records):
+    max_count = 0
+    for record in records:
+        if record.count > max_count:
+            max_count = record.count
+
+    return max_count
+
+def calculate_min(records):
+    min_count = sys.maxsize
+    for record in records:
+        if record.count < min_count:
+            min_count = record.count
+    
+    if min_count == sys.maxsize:
+        min_count = 0
+    
+    return min_count
+
+def calculate_avg(records):
+    total = 0
+
+    if len(records) == 0 or records is None:
+        return 0;
+
+    for record in records:
+        total = total + record.count
+    
+    
+    return math.ceil(total/len(records))

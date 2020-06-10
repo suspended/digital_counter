@@ -18,6 +18,18 @@ def clear_count_job():
         from app.models.counter import Counter
         Counter.clear_expired_count()
 
+@scheduler.task('interval', id='calculate_stats', minutes=10)
+def calculate_stats_job():
+    print("running calculate stats")
+    with scheduler.app.app_context():
+        from app.models.counter import Location, CounterStat
+
+        locations = Location.get_all_location()
+
+        for location in locations:
+            CounterStat.the_cron_job_function(location.id)
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config())
