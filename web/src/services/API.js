@@ -18,3 +18,10 @@ export function get_statistics(location_id, start_time, end_time){
     data.append('end_time', end_time);
     return axios.post(API_SERVER+'/location/statistics' ,data);
 }
+
+export function get_daily_statistics(location_id, target_date){
+    let data = new FormData();
+    data.append('location_id', location_id);
+    data.append('target_date', target_date);
+    return axios.post(API_SERVER+'/location/daily_statistics' ,data);
+}

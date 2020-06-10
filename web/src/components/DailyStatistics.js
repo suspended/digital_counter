@@ -11,12 +11,18 @@ import { Line } from 'react-chartjs-2';
 
 import {
     get_location,
-    get_statistics
+    get_daily_statistics
 } from '../services/API';
 
 // eslint-disable-next-line
 Date.prototype.addHours = function(h){
     this.setTime(this.getTime() + (h*60*60*1000));
+    return this;
+}
+
+// eslint-disable-next-line
+Date.prototype.addDays = function(d){
+    this.setDate(this.getDate() + (d));
     return this;
 }
 
@@ -61,6 +67,8 @@ function DailyStatistics() {
 
     let [ locationID, setLocationID] = React.useState("");
     let [ date, setDate ] = React.useState("");
+    let [ minDate, setMinDate] = React.useState("");
+    let [ maxDate, setMaxDate] = React.useState("");
 
     let [ showSpinner, setShowSpinner ] = React.useState(false);
 
@@ -85,6 +93,9 @@ function DailyStatistics() {
         fetchData();
         let date_today = new Date();
         setDate(date_today.getDateInputString());
+        setMaxDate(date_today.getDateInputString());
+        let min_date = date_today.addDays(-6);
+        setMinDate(min_date.getDateInputString());
     }, []);
 
     React.useEffect(() => {
@@ -98,30 +109,11 @@ function DailyStatistics() {
         if(locationID === "" || date === ""){
             return;
         }
-
-        function compareRecord(a, b){
-            var date_a = new Date(a.time);
-            var date_b = new Date(b.time);
-            return date_a - date_b;
-        }
         async function fetchData(){
             setShowSpinner(true);
-            let startDate = new Date(date);
-            let endDate = new Date(date);
-            endDate.setDate(endDate.getDate() + 1);
-            // set hours to 0 to get string in local time
-            startDate.setHours(0);
-            endDate.setHours(0);
 
-            let statistic_response = await get_statistics(locationID, startDate.getDateTimeInputString(), endDate.getDateTimeInputString());
-            // sort response
-            let temp = statistic_response.data.stats;
-            temp.sort(compareRecord);
-            for(let i = 0; i < temp.length; i ++){
-                temp[i].time = (new Date(temp[i].time)).toLocaleString();
-            }
-    
-            setRecordList(temp);
+            let statistic_response = await get_daily_statistics(locationID, date);
+            setRecordList(statistic_response.data);
             setShowSpinner(false);
         }
         
@@ -139,13 +131,13 @@ function DailyStatistics() {
         let min = 999;
         let total = 0;
         for(let i = 0; i < recordList.length; i++){
-            if(recordList[i].count > max){
-                max = recordList[i].count
+            if(recordList[i].max > max){
+                max = recordList[i].max
             }
-            if(recordList[i].count < min){
-                min = recordList[i].count
+            if(recordList[i].min < min){
+                min = recordList[i].min
             }
-            total = total + recordList[i].count
+            total = total + recordList[i].avg
         }
         setMax(max);
         setMin(min);
@@ -153,62 +145,16 @@ function DailyStatistics() {
     }, [recordList]);
 
     React.useEffect(() => {
-        function calculateMax(arr){
-            let max = 0;
-            for(let i = 0; i < arr.length; i++){
-                if(arr[i].count > max){
-                    max = arr[i].count
-                }
-            }
-            return max;
-        }
-
-        function calculateMin(arr){
-            let min = Number.MAX_VALUE;
-            for(let i = 0; i < arr.length; i++){
-                if(arr[i].count < min){
-                    min = arr[i].count
-                }
-            }
-            if(min === Number.MAX_VALUE){
-                min = 0;
-            }
-            return min;
-        }
-
-        function calculateAvg(arr){
-            let total = 0;
-            for(let i = 0; i < arr.length; i++){
-                total = total + arr[i].count
-            }
-            if(arr.length === 0){
-                return 0;
-            }
-            return Math.ceil(total/arr.length);
-        }
-
-        let tempList = new Array(24);
-        for(let i = 0; i < tempList.length; i++){
-            tempList[i] = [];
-        }
-
-        for(let j = 0; j < recordList.length; j ++){
-            let record_date = new Date(recordList[j].time);
-            tempList[record_date.getHours()].push(recordList[j]);
-        }
+        let tempList = [...recordList];
 
         for(let k = 0; k < tempList.length; k++){
-            let max, min, avg, time;
-
-            if(k < 10){
+            let time;
+            if(tempList[k].hour < 10){
                 time = "0" + k + "00";
             } else {
                 time = k + "00";
             }
-            max = calculateMax(tempList[k]);
-            min = calculateMin(tempList[k]);
-            avg = calculateAvg(tempList[k]);
-            tempList[k] = {max:max,min:min,avg:avg,time:time};
+            tempList[k]['time'] = time;
         }
         
         setDisplayList(tempList);
@@ -240,7 +186,7 @@ function DailyStatistics() {
                 <Col sm="12" lg="3">
                     <Form.Group>
                         <Form.Label>Date:</Form.Label>
-                        <Form.Control type="date" value={date} onChange={(e) => {setDate(e.target.value)}}></Form.Control>
+                        <Form.Control type="date" value={date} min={minDate} max={maxDate} onChange={(e) => {setDate(e.target.value)}}></Form.Control>
                     </Form.Group>
                 </Col>
                 <Col className="d-flex align-items-end flex-column">
