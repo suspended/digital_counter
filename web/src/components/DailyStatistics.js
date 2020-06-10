@@ -150,9 +150,9 @@ function DailyStatistics() {
         for(let k = 0; k < tempList.length; k++){
             let time;
             if(tempList[k].hour < 10){
-                time = "0" + k + "00";
+                time = "0" + tempList[k].hour + "00";
             } else {
-                time = k + "00";
+                time = tempList[k].hour + "00";
             }
             tempList[k]['time'] = time;
         }
