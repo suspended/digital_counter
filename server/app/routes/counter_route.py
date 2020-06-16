@@ -67,7 +67,9 @@ def get_locations():
             "id": location.id,
             "name": location.name,
             "ok_limit": location.ok_limit,
-            "warning_limit": location.warning_limit
+            "warning_limit": location.warning_limit,
+            "notify_interval": location.notify_interval,
+            "notify_email": location.notify_email_addresses
         })
 
     return jsonify(data),  200
@@ -84,6 +86,20 @@ def update_location_threshold():
     return jsonify({
         "ok_limit": location.ok_limit,
         "warning_limit": location.warning_limit
+    }),  200
+
+@counter_blueprint.route('/location/update_notification_settings', methods=['POST'])
+@jwt_required
+def update_location_notifications():
+    id = request.values['id']
+    email_addresses = request.values['email_addresses']
+    interval = request.values['interval']
+
+    location = Location.update_notification_settings(id, email_addresses, interval)
+
+    return jsonify({
+        "interval": location.notify_interval,
+        "email_addresses": location.notify_email_addresses
     }),  200
 
 @counter_blueprint.route('/location/statistics', methods=['POST'])

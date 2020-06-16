@@ -19,6 +19,11 @@
     ```
     bash run_dev.sh
     ```
+3. If you want to enable email notifications(only gmail supported), set environment variable using
+    ```
+    export EMAIL_USER=<email address>
+    export EMAIL_PASSWORD=<email password>
+    ```
 
 ## Running for production
 1. Duplicate `docker-compose-sample.env` and rename the new file `docker-compose.env`
@@ -75,10 +80,7 @@ PUT /location
 
 # Get location
 GET /location
-<id>
-<name>
-<ok_limit>
-<warning_limit>
+[{id,name,ok_limit,warning_limit,notify_interval,notify_email},]
 
 # Get all location latest count
 GET /location/get_latest_count
@@ -106,6 +108,15 @@ POST /location/update_threshold
 [warning_limit]
 <ok_limit>
 <warning_limit>
+
+# Update notification settings
+POST /location/update_notification_settings
+*authorization required*
+[id]
+[interval]
+[email_addresses]
+<interval>
+<email_addresses>
 
 # get statistics (time received should be SGT in yyyy-mm-ddThh:mm, 2020-06-01T08:15)
 POST /location/statistics

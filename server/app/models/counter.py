@@ -3,6 +3,10 @@ import sys
 import math
 import pytz
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from sqlalchemy.sql import func
 from datetime import date, time, datetime, timedelta
 
@@ -12,9 +16,12 @@ from app import db
 class Location(db.Model):
     __tablename__ = "Location"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False);
+    name = db.Column(db.String(64), nullable=False)
     ok_limit = db.Column(db.Integer, nullable=False)
     warning_limit = db.Column(db.Integer, nullable=False)
+    last_notified = db.Column(db.DateTime, nullable=True)
+    notify_email_addresses = db.Column(db.Text, default="", server_default="", nullable=False)
+    notify_interval = db.Column(db.Integer, default=3, server_default="3", nullable=False)
 
     counters = db.relationship("Counter", back_populates="location")
 
@@ -54,6 +61,61 @@ class Location(db.Model):
             db.session.commit()
         return location
     
+    @staticmethod
+    def update_notification_settings(location_id, email_addresses, interval):
+        location = Location.query.filter_by(id=location_id).first()
+        if location is None:
+            return None
+        else:
+            location.notify_email_addresses = email_addresses
+            location.notify_interval = interval
+            db.session.commit()
+        return location 
+
+    def notify_email(self, count):
+        message_content = ""
+        if count > self.warning_limit:
+            message_content = "The crowd  in " + self.name + " has now reached more than 90%"
+        elif count > self.ok_limit:
+            message_content = "The crowd  in " + self.name + " has now reached more than 70%"
+        else:
+            return
+
+        current_time = datetime.utcnow()
+        if self.last_notified is None or self.last_notified == "" or (current_time - self.last_notified > timedelta(minutes=self.notify_interval)):
+            self.last_notified = current_time
+            db.session.commit() # commit early to prevent other workers from sending email as well
+        else:
+            return
+
+        try:
+            #Create SMTP session for sending the mail
+            session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
+            session.starttls() #enable security
+            #The mail addresses and password
+            sender_address = os.environ.get('EMAIL_USER', '')
+            sender_pass = os.environ.get('EMAIL_PASSWORD', '')
+            session.login(sender_address, sender_pass) #login with mail_id and password
+
+            for email in (self.notify_email_addresses).split(','):
+                #Setup the MIME
+                message = MIMEMultipart()
+                message['From'] = sender_address
+                message['To'] = email
+                message['Subject'] = 'Crowd Status'   #The subject line
+                #The body and the attachments for the mail
+                message.attach(MIMEText(message_content, 'plain'))
+                text = message.as_string()
+                session.sendmail(sender_address, email, text)
+            session.quit()
+        except Exception as e:
+            print(e)
+            print("Fail to send email. Make sure the following are done if you want this feature")
+            print("1) Set environment variables EMAIL_USER and EMAIL_PASSWORD")
+            print("\t For deployment, this can be set on the docker-compose.env file")
+            print("2) Make sure your email server(eg. gmail) settings are configured for it")
+        
+            
 
 class Counter(db.Model):
     __tablename__ = "Counter"
@@ -76,6 +138,8 @@ class Counter(db.Model):
         try:
             db.session.add(counter)
             db.session.commit()
+
+            counter.location.notify_email(counter.count)
         except:
             return None
         return counter 
