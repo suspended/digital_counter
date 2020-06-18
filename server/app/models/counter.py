@@ -22,6 +22,8 @@ class Location(db.Model):
     last_notified = db.Column(db.DateTime, nullable=True)
     notify_email_addresses = db.Column(db.Text, default="", server_default="", nullable=False)
     notify_interval = db.Column(db.Integer, default=3, server_default="3", nullable=False)
+    notify_ok_trigger = db.Column(db.Boolean, server_default="false", nullable=False)
+    notify_warning_trigger = db.Column(db.Boolean, server_default="false", nullable=False)
 
     counters = db.relationship("Counter", back_populates="location")
 
@@ -74,18 +76,30 @@ class Location(db.Model):
 
     def notify_email(self, count):
         message_content = ""
-        if count > self.warning_limit:
-            message_content = "The crowd  in " + self.name + " has now reached more than 90%"
-        elif count > self.ok_limit:
-            message_content = "The crowd  in " + self.name + " has now reached more than 70%"
-        else:
-            return
 
         current_time = datetime.utcnow()
-        if self.last_notified is None or self.last_notified == "" or (current_time - self.last_notified > timedelta(minutes=self.notify_interval)):
-            self.last_notified = current_time
-            db.session.commit() # commit early to prevent other workers from sending email as well
+        if count > self.warning_limit:
+            if self.notify_warning_trigger is False:
+                self.notify_ok_trigger = True
+                self.notify_warning_trigger = True
+                self.last_notified = current_time
+                db.session.commit() # commit early to prevent other workers from sending email as well
+                message_content = "The crowd  in " + self.name + " has now reached more than " + str(self.warning_limit) + " pax"
+            else:
+                return
+        elif count > self.ok_limit:
+            if self.notify_ok_trigger is False:
+                self.notify_ok_trigger = True
+                self.last_notified = current_time
+                db.session.commit() # commit early to prevent other workers from sending email as well
+                message_content = "The crowd  in " + self.name + " has now reached more than " + str(self.ok_limit) + " pax"
+            else:
+                return
         else:
+            if self.last_notified is None or self.last_notified == "" or(current_time - self.last_notified > timedelta(minutes=self.notify_interval)):
+                self.notify_ok_trigger = False
+                self.notify_warning_trigger = False
+                db.session.commit() # commit early to prevent other workers from sending email as well
             return
 
         try:
